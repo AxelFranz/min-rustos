@@ -15,13 +15,7 @@ pub extern "C" fn _start() -> ! {
     x86_64::instructions::interrupts::int3();
 
     println!("Je marche encore");
-
-    unsafe {
-        *(0xdeadbeef as *mut u8) = 42;
-    };
-
-    println!("je suis pas là");
-
+    
     #[cfg(test)]
     test_main();
 

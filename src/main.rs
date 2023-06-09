@@ -16,7 +16,7 @@ pub extern "C" fn _start() -> ! {
     #[cfg(test)]
     test_main();
 
-    loop {}
+    min_rustos::hlt_loop();
 }
 
 /// This function is called on panic.
@@ -24,13 +24,13 @@ pub extern "C" fn _start() -> ! {
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     println!("{}", info);
-    loop {}
+    min_rustos::hlt_loop();
 }
 
 #[cfg(test)]
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
-    min_rustos::test_panic_handler(info)
+    min_rustos::test_panic_handler(info);
 }
 
 #[test_case]

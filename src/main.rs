@@ -4,18 +4,15 @@
 #![test_runner(min_rustos::test_runner)]
 #![reexport_test_harness_main = "test_main"]
 
-use min_rustos::println;
+use min_rustos::{println, print};
 use core::panic::PanicInfo;
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
-    println!("Hello World{}", "!");
 
     min_rustos::init();
-    x86_64::instructions::interrupts::int3();
+    println!("Bienvenue");
 
-    println!("Je marche encore");
-    
     #[cfg(test)]
     test_main();
 

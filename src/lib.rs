@@ -14,7 +14,9 @@ pub mod gdt;
 
 pub fn init() {
     gdt::init();
+    unsafe { interrupt::PICS.lock().initialize() };
     interrupt::init_idt();
+    x86_64::instructions::interrupts::enable();
 }
 
 pub trait Testable {

@@ -47,14 +47,14 @@ extern "x86-interrupt" fn test_double_fault_handler(
     _stack_frame: InterruptStackFrame,
     _error_code: u64,
 ) -> ! {
-    serial_println!("[ok]");
+    serial_println!("[OK]");
     exit_qemu(QemuExitCode::Success);
     loop {}
 }
 
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
-    serial_println!("Panicked => [OK]");
+    serial_println!("[OK]");
     min_rustos::test_panic_handler(info)
 }
 

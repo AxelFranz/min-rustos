@@ -143,6 +143,7 @@ impl Writer {
         }
     }
 
+    /// Clear the last character and decreases the cursor's position
     fn clear_last_char(&mut self) {
         let blank = ScreenChar {
             ascii_character: b' ',
@@ -154,6 +155,7 @@ impl Writer {
 }
 
 impl fmt::Write for Writer {
+    #[doc(hidden)]
     fn write_str(&mut self, s: &str) -> fmt::Result {
         self.write_string(s);
         Ok(())

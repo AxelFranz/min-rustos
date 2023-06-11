@@ -11,13 +11,14 @@ use bootloader::{BootInfo, entry_point};
 
 entry_point!(kernel_main);
 
+// Entry point of the kernel
 #[no_mangle]
 fn kernel_main (boot_info: &'static BootInfo) -> ! {
     use min_rustos::memory;
     use x86_64::{VirtAddr};
 
     min_rustos::init();
-    println!("Bienvenue");
+    println!("Welcome user !");
     println!();
 
     let phys_mem_offset = VirtAddr::new(boot_info.physical_memory_offset);
@@ -41,7 +42,6 @@ fn kernel_main (boot_info: &'static BootInfo) -> ! {
         println!("{:?} -> {:?}", virt, phys);
     }
 
-
     #[cfg(test)]
     test_main();
 
@@ -56,14 +56,9 @@ fn panic(info: &PanicInfo) -> ! {
     min_rustos::hlt_loop();
 }
 
+/// Panic handler during testing
 #[cfg(test)]
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     min_rustos::test_panic_handler(info);
 }
-
-#[test_case]
-fn trivial_assertion() {
-    assert_eq!(1, 1);
-}
-

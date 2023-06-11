@@ -17,6 +17,7 @@ pub mod interrupt;
 pub mod gdt;
 pub mod memory;
 
+/// Initialize the GDT, Interrupts and the IDT
 pub fn init() {
     gdt::init();
     unsafe { interrupt::PICS.lock().initialize() };
@@ -24,6 +25,7 @@ pub fn init() {
     x86_64::instructions::interrupts::enable();
 }
 
+/// Trait used for testing every function
 pub trait Testable {
     fn run(&self) -> ();
 }
@@ -32,6 +34,7 @@ impl<T> Testable for T
 where
     T: Fn(),
 {
+    /// Prints the test's name when running test case
     fn run(&self) {
         serial_print!("{}...\t", core::any::type_name::<T>());
         self();
@@ -39,6 +42,7 @@ where
     }
 }
 
+/// Runs every test case (defined in the global macro test_runner)
 pub fn test_runner(tests: &[&dyn Testable]) {
     serial_println!("Running {} tests", tests.len());
     for test in tests {
@@ -47,6 +51,7 @@ pub fn test_runner(tests: &[&dyn Testable]) {
     exit_qemu(QemuExitCode::Success);
 }
 
+/// Panics if a test fails
 pub fn test_panic_handler(info: &PanicInfo) -> ! {
     serial_println!("[failed]\n");
     serial_println!("Error: {}\n", info);
@@ -54,6 +59,7 @@ pub fn test_panic_handler(info: &PanicInfo) -> ! {
     hlt_loop();
 }
 
+/// Represents the VM's status code given to QEMU
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u32)]
 pub enum QemuExitCode {
@@ -61,6 +67,7 @@ pub enum QemuExitCode {
     Failed = 0x11,
 }
 
+/// Exits QEMU
 pub fn exit_qemu(exit_code: QemuExitCode) {
     use x86_64::instructions::port::Port;
 
@@ -70,6 +77,7 @@ pub fn exit_qemu(exit_code: QemuExitCode) {
     }
 }
 
+/// The kernels enter a loop where it's stopped until receiving an interrupts. Prevents active event listening with infinite loop
 pub fn hlt_loop() -> ! {
     loop {
         x86_64::instructions::hlt();

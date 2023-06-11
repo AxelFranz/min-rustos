@@ -1,4 +1,4 @@
-use core::fmt;
+use core::fmt::{self, Write};
 use lazy_static::lazy_static;
 use spin::Mutex;
 use volatile::Volatile;
@@ -113,7 +113,7 @@ impl Writer {
             match byte {
                 // printable ASCII byte or newline
                 0x20..=0x7e | b'\n' => self.write_byte(byte),
-                0x8 => self.write_byte(b'-'),
+                0x8 => self.clear_last_char(),
                 // not part of printable ASCII range
                 _ => self.write_byte(0xfe),
             }
@@ -142,9 +142,20 @@ impl Writer {
             self.buffer.chars[row][col].write(blank);
         }
     }
+
+    /// Clear the last character and decreases the cursor's position
+    fn clear_last_char(&mut self) {
+        let blank = ScreenChar {
+            ascii_character: b' ',
+            color_code: self.color_code,
+        };
+        self.buffer.chars[BUFFER_HEIGHT-1][self.column_position-1].write(blank);
+        self.column_position = self.column_position - 1;
+    }
 }
 
 impl fmt::Write for Writer {
+    #[doc(hidden)]
     fn write_str(&mut self, s: &str) -> fmt::Result {
         self.write_string(s);
         Ok(())
@@ -167,7 +178,6 @@ macro_rules! println {
 /// Prints the given formatted string to the VGA text buffer through the global `WRITER` instance.
 #[doc(hidden)]
 pub fn _print(args: fmt::Arguments) {
-    use core::fmt::Write;
     use x86_64::instructions::interrupts;
 
     interrupts::without_interrupts(|| {
@@ -191,7 +201,6 @@ fn test_println_many() {
 
 #[test_case]
 fn test_println_output() {
-    use core::fmt::Write;
     use x86_64::instructions::interrupts;
 
     let s = "Some test string that fits on a single line";

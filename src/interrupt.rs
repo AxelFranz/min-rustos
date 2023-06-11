@@ -5,10 +5,13 @@ use pic8259::ChainedPics;
 use spin;
 use lazy_static::lazy_static;
 
+/// As we already have 32 hardware interrupts, we need to offset the pic's interrupt
 pub const PIC_1_OFFSET: u8 = 32;
+/// 2nd PIC chip's offset
 pub const PIC_2_OFFSET: u8 = PIC_1_OFFSET + 8;
 
 lazy_static! {
+	/// Defines the IDT used by the kernel
 	static ref IDT: InterruptDescriptorTable = {
 		let mut idt = InterruptDescriptorTable::new();
 		idt.breakpoint.set_handler_fn(breakpoint_handler);
@@ -23,6 +26,7 @@ lazy_static! {
 	};
 }
 
+/// Defines the interrupt indexes for the PIC
 #[derive(Debug,Clone,Copy)]
 #[repr(u8)]
 pub enum InterruptIndex {
@@ -31,15 +35,18 @@ pub enum InterruptIndex {
 }
 
 impl InterruptIndex {
+	/// Returns the index as u8
 	fn as_u8(self) -> u8{
 		self as u8
 	}
 
+	/// Returns the index as usize (used to access the IDT's array)
 	fn as_usize(self) -> usize {
 		usize::from(self.as_u8())
 	}
 }
 
+/// Inits the IDT
 pub fn init_idt () {
 	IDT.load();
 }
@@ -102,6 +109,7 @@ extern "x86-interrupt" fn pagefault_handler(stack_frame: InterruptStackFrame, er
 	hlt_loop();
 }
 
+/// Defines the 2 PIC chips used by the kernel
 pub static PICS: spin::Mutex<ChainedPics> = spin::Mutex::new(
 	unsafe{
 		ChainedPics::new(PIC_1_OFFSET, PIC_2_OFFSET)

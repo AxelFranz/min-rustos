@@ -10,6 +10,7 @@ use bootloader::{BootInfo, entry_point};
 
 entry_point!(kernel_main);
 
+// Entry point of the kernel
 #[no_mangle]
 fn kernel_main (boot_info: &'static BootInfo) -> ! {
     use min_rustos::memory;
@@ -29,8 +30,29 @@ fn kernel_main (boot_info: &'static BootInfo) -> ! {
 
 
     min_rustos::init();
-    println!("Bienvenue");
+    println!("Welcome user !");
     println!();
+
+    let phys_mem_offset = VirtAddr::new(boot_info.physical_memory_offset);
+
+    let mapper = unsafe {memory::init(phys_mem_offset)};
+
+    let addresses = [
+        // the identity-mapped vga buffer page
+        0xb8000,
+        // some code page
+        0x201008,
+        // some stack page
+        0x0100_0020_1a10,
+        // virtual address mapped to physical address 0
+        boot_info.physical_memory_offset,
+    ];
+
+    for &address in &addresses {
+        let virt = VirtAddr::new(address);
+        let phys = mapper.translate_addr(virt);
+        println!("{:?} -> {:?}", virt, phys);
+    }
 
 
     #[cfg(test)]
@@ -47,14 +69,9 @@ fn panic(info: &PanicInfo) -> ! {
     min_rustos::hlt_loop();
 }
 
+/// Panic handler during testing
 #[cfg(test)]
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     min_rustos::test_panic_handler(info);
 }
-
-#[test_case]
-fn trivial_assertion() {
-    assert_eq!(1, 1);
-}
-
